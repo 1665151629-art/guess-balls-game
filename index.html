@@ -2,6 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>猜小球小游戏</title>
   <style>
     body {
@@ -15,14 +16,21 @@
       padding: 20px;
     }
 
-    .game-container {
-      background: #e0e0e0;
-      padding: 20px;
-      border-radius: 16px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-      display: flex;
-      gap: 16px;
-    }
+   .game-container {
+  background: #e0e0e0;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  display: flex;
+  gap: 16px;
+
+  /* 新增：自适应各类屏幕 */
+  width: 100%;
+  max-width: 900px;          /* 电脑上内容不会太宽 */
+  margin: 0 auto;            /* 居中 */
+  box-sizing: border-box;
+}
+
 
     .left-panel {
       display: flex;
@@ -176,6 +184,69 @@
     .c-cyan   { background: cyan; }
     .c-pink   { background: hotpink; }
     .c-gray   { background: #808080; }
+	  /* 小屏幕自适应（手机 / 平板竖屏） */
+@media (max-width: 768px) {
+  body {
+    padding: 10px;
+    align-items: flex-start;
+  }
+
+  /* 整个游戏上下排列，而不是左右排 */
+  .game-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .board-wrapper {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* 左侧面板横向排版，更节省高度 */
+  .left-panel {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 12px;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .palette {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .palette-title {
+    text-align: left;
+  }
+
+  /* 手机上把球稍微缩小一点 */
+  .slot,
+  .color-circle {
+    width: 28px;
+    height: 28px;
+  }
+
+  .secret-slot {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* 超小屏幕（比如 360 像素宽）再缩一点 */
+@media (max-width: 420px) {
+  .slot,
+  .color-circle {
+    width: 24px;
+    height: 24px;
+  }
+
+  .secret-slot {
+    width: 18px;
+    height: 18px;
+  }
+}
+
   </style>
 </head>
 <body>
@@ -558,4 +629,5 @@ difficultySelect.addEventListener("change", onDifficultyChange);
   </script>
 </body>
 </html>
+
 
