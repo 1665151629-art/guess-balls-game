@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>猜小球小游戏</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "微软雅黑", sans-serif;
+      background: #f2f2f2;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .game-container {
+      background: #e0e0e0;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+      display: flex;
+      gap: 16px;
+    }
+
+    .left-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    select, button {
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid #bbb;
+      background: white;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    button {
+      font-weight: 600;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .palette {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .palette-title {
+      font-size: 13px;
+      color: #555;
+    }
+
+    .color-circle {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid rgba(0,0,0,0.25);
+      cursor: pointer;
+      box-sizing: border-box;
+    }
+
+    .color-circle.selected {
+      outline: 3px solid #333;
+    }
+
+    .board-wrapper {
+      display: flex;
+      gap: 16px;
+    }
+
+    .board {
+      display: flex;
+      flex-direction: column-reverse; /* 最新一行在最下方 */
+      gap: 6px;
+    }
+
+    .row {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .slot {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #b3b3b3;
+      border: 2px solid rgba(0,0,0,0.2);
+      box-sizing: border-box;
+      cursor: pointer;
+    }
+
+    .slot.current {
+      border-color: #ff4b4b;
+      box-shadow: 0 0 0 2px rgba(255,75,75,0.4);
+    }
+
+    .hints {
+      display: grid;
+      grid-template-columns: repeat(3, 10px); /* 最多 3 列，自动换行 */
+      grid-auto-rows: 10px;
+      gap: 4px;
+      margin-left: 8px;
+      width: 38px; /* 给小点预留一点空间 */
+    }
+
+    .hint-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #a5a5a5;
+    }
+
+    .hint-black { background: #000; }
+    .hint-white { background: #fff; border: 1px solid #000; }
+
+    .status {
+      margin-top: 8px;
+      font-size: 14px;
+      min-height: 20px;
+    }
+
+    .secret-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 8px;
+      justify-content: center;
+    }
+
+    .secret-slot {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid rgba(0,0,0,0.4);
+      background: #808080;
+      box-sizing: border-box;
+    }
+
+    .secret-revealed {
+      background: transparent;
+      border-style: dashed;
+    }
+
+    .bottom-actions {
+      margin-top: 6px;
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    /* 颜色定义 */
+    .c-purple { background: purple; }
+    .c-red    { background: red; }
+    .c-yellow { background: yellow; }
+    .c-green  { background: #00c800; }
+    .c-blue   { background: royalblue; }
+    .c-orange { background: orange; }
+    .c-brown  { background: #7b4a2b; }
+    .c-cyan   { background: cyan; }
+    .c-pink   { background: hotpink; }
+    .c-gray   { background: #808080; }
+  </style>
+</head>
+<body>
+  <div class="game-container">
+    <div class="left-panel">
+      <div class="controls">
+        <label>
+          难度：
+          <select id="difficulty">
+            <option value="easy">简单</option>
+            <option value="medium">普通</option>
+            <option value="hard">困难</option>
+            <option value="custom">自定义</option>
+          </select>
+        </label>
+	<!-- 自定义难度设置面板，默认隐藏 -->
+ 	 <div id="customPanel" style="display:none; font-size: 13px; line-height: 1.6;">
+ 	   <div>
+  	    颜色种类：
+   	   <input type="number" id="customColors" min="5" max="10" value="6" style="width:60px;">
+   	 </div>
+  	  <div>
+   	   机会次数：
+     	 <input type="number" id="customAttempts" min="5" max="20" value="10" style="width:60px;">
+   	 </div>
+    	<div>设置好后点“重新开始”生效</div>
+ 	 </div>
+        <button id="restartBtn">重新开始</button>
+        <small id="configText"></small>
+      </div>
+
+      <div class="palette">
+        <div class="palette-title">拖动颜色或点击填色</div>
+        <div id="paletteColors"></div>
+      </div>
+    </div>
+
+    <div class="board-wrapper">
+      <div>
+        <div class="secret-row" id="secretRow"></div>
+        <div class="board" id="board"></div>
+        <div class="bottom-actions">
+          <button id="submitBtn">提交本行猜测</button>
+        </div>
+        <div class="status" id="status"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const ALL_COLORS = [
+      { key: "purple", label: "紫", className: "c-purple" },
+      { key: "red",    label: "红", className: "c-red" },
+      { key: "yellow", label: "黄", className: "c-yellow" },
+      { key: "green",  label: "绿", className: "c-green" },
+      { key: "blue",   label: "蓝", className: "c-blue" },
+      { key: "orange", label: "橙", className: "c-orange" },
+      { key: "brown",  label: "棕", className: "c-brown" },
+      { key: "cyan",   label: "青", className: "c-cyan" },
+      { key: "pink",   label: "粉", className: "c-pink" }, 
+      { key: "gray",   label: "灰", className: "c-gray" }  
+    ];
+
+    // 所有难度答案长度都固定为 5
+    const DIFFICULTIES = {
+      easy:   { colors: 6, slots: 5, attempts: 10 },
+      medium: { colors: 8, slots: 5, attempts: 12 },
+      hard:   { colors: 10, slots: 5, attempts: 14 }
+    };
+
+    const difficultySelect = document.getElementById("difficulty");
+    const restartBtn = document.getElementById("restartBtn");
+    const submitBtn = document.getElementById("submitBtn");
+    const boardEl = document.getElementById("board");
+    const paletteEl = document.getElementById("paletteColors");
+    const statusEl = document.getElementById("status");
+    const secretRowEl = document.getElementById("secretRow");
+    const configTextEl = document.getElementById("configText");
+    const customPanelEl = document.getElementById("customPanel");
+    const customColorsInput = document.getElementById("customColors");
+    const customAttemptsInput = document.getElementById("customAttempts");
+
+    let config;
+    let secret;
+    let currentRow = 0; // 0 表示第一行（最底部）
+    let guesses = [];   // 每行玩家的猜测
+    let currentColorKey = null;
+    let gameOver = false;
+
+    function randomInt(max) {
+      return Math.floor(Math.random() * max);
+    }
+
+    function createSecret() {
+      const colors = ALL_COLORS.slice(0, config.colors);
+      const result = [];
+      for (let i = 0; i < config.slots; i++) {
+        const idx = randomInt(colors.length);
+        result.push(colors[idx].key);
+      }
+      return result;
+    }
+
+    function buildPalette() {
+      paletteEl.innerHTML = "";
+      const colors = ALL_COLORS.slice(0, config.colors);
+      colors.forEach(color => {
+        const div = document.createElement("div");
+        div.className = `color-circle ${color.className}`;
+        div.title = color.label;
+
+        // 支持点击选中
+        div.addEventListener("click", () => {
+          currentColorKey = color.key;
+          [...paletteEl.children].forEach(c => c.classList.remove("selected"));
+          div.classList.add("selected");
+        });
+
+        // 支持拖拽
+        div.setAttribute("draggable", "true");
+        div.addEventListener("dragstart", (e) => {
+          e.dataTransfer.setData("text/plain", color.key);
+        });
+
+        paletteEl.appendChild(div);
+      });
+      // 默认选第一个
+      if (colors[0]) {
+        currentColorKey = colors[0].key;
+        paletteEl.firstChild.classList.add("selected");
+      }
+    }
+
+    function buildSecretRow() {
+      secretRowEl.innerHTML = "";
+      for (let i = 0; i < config.slots; i++) {
+        const div = document.createElement("div");
+        div.className = "secret-slot secret-revealed"; // 初始不显示真实颜色
+        secretRowEl.appendChild(div);
+      }
+    }
+
+    function revealSecret() {
+      const children = [...secretRowEl.children];
+      children.forEach((slotEl, i) => {
+        const colorKey = secret[i];
+        const color = ALL_COLORS.find(c => c.key === colorKey);
+        slotEl.className = `secret-slot ${color.className}`;
+      });
+    }
+
+    function buildBoard() {
+      boardEl.innerHTML = "";
+      guesses = [];
+      currentRow = 0;
+      gameOver = false;
+      statusEl.textContent = "";
+
+      for (let row = 0; row < config.attempts; row++) {
+        const rowEl = document.createElement("div");
+        rowEl.className = "row";
+
+        const slots = [];
+        for (let col = 0; col < config.slots; col++) {
+          const slotEl = document.createElement("div");
+          slotEl.className = "slot";
+          if (row === currentRow) {
+            slotEl.classList.add("current");
+          }
+          slotEl.dataset.row = row;
+          slotEl.dataset.col = col;
+
+          // 点击填色
+          slotEl.addEventListener("click", onSlotClick);
+
+          // 拖拽填色
+          slotEl.addEventListener("dragover", (e) => {
+            if (gameOver) return;
+            if (Number(slotEl.dataset.row) !== currentRow) return;
+            e.preventDefault(); // 允许 drop
+          });
+
+          slotEl.addEventListener("drop", (e) => {
+            e.preventDefault();
+            if (gameOver) return;
+            const rowIndex = Number(slotEl.dataset.row);
+            const colIndex = Number(slotEl.dataset.col);
+            if (rowIndex !== currentRow) return;
+            const colorKey = e.dataTransfer.getData("text/plain");
+            if (!colorKey) return;
+            applyColorToSlot(slotEl, rowIndex, colIndex, colorKey);
+          });
+
+          rowEl.appendChild(slotEl);
+          slots.push(null);
+        }
+
+        // 提示小点：数量 = slots 数量
+        const hintsEl = document.createElement("div");
+        hintsEl.className = "hints";
+        for (let i = 0; i < config.slots; i++) {
+          const dot = document.createElement("div");
+          dot.className = "hint-dot";
+          hintsEl.appendChild(dot);
+        }
+        rowEl.appendChild(hintsEl);
+
+        boardEl.appendChild(rowEl);
+        guesses.push(slots);
+      }
+    }
+
+    function applyColorToSlot(slotEl, row, col, colorKey) {
+      const color = ALL_COLORS.find(c => c.key === colorKey);
+      if (!color) return;
+      slotEl.className = `slot current ${color.className}`;
+      guesses[row][col] = colorKey;
+    }
+
+    function onSlotClick(e) {
+      if (gameOver) return;
+
+      const slotEl = e.currentTarget;
+      const row = Number(slotEl.dataset.row);
+      const col = Number(slotEl.dataset.col);
+
+      if (row !== currentRow) return; // 只能操作当前行
+      if (!currentColorKey) return;
+
+      applyColorToSlot(slotEl, row, col, currentColorKey);
+    }
+
+    function evaluateGuess(guess) {
+      // 先统计位置完全正确
+      let blacks = 0;
+      const secretCopy = [...secret];
+      const guessCopy = [...guess];
+
+      for (let i = 0; i < secretCopy.length; i++) {
+        if (guessCopy[i] === secretCopy[i]) {
+          blacks++;
+          secretCopy[i] = null;
+          guessCopy[i] = null;
+        }
+      }
+
+      // 再统计颜色正确但位置不对
+      let whites = 0;
+      for (let i = 0; i < guessCopy.length; i++) {
+        const g = guessCopy[i];
+        if (!g) continue;
+        const idx = secretCopy.indexOf(g);
+        if (idx !== -1) {
+          whites++;
+          secretCopy[idx] = null;
+          guessCopy[i] = null;
+        }
+      }
+
+      return { blacks, whites };
+    }
+
+    function updateHints(row, result) {
+      const rowEl = boardEl.children[row];
+      const hintsEl = rowEl.querySelector(".hints");
+      const dots = [...hintsEl.children];
+
+      let index = 0;
+      for (let i = 0; i < result.blacks; i++) {
+        if (index >= dots.length) break;
+        dots[index].className = "hint-dot hint-black";
+        index++;
+      }
+      for (let i = 0; i < result.whites; i++) {
+        if (index >= dots.length) break;
+        dots[index].className = "hint-dot hint-white";
+        index++;
+      }
+      // 其他没用到的点保持灰色
+    }
+
+    function submitCurrentRow() {
+      if (gameOver) return;
+
+      const guess = guesses[currentRow];
+      if (guess.includes(null)) {
+        alert("当前行还有空位，请填满再提交！");
+        return;
+      }
+
+      const result = evaluateGuess(guess);
+      updateHints(currentRow, result);
+
+      if (result.blacks === config.slots) {
+        gameOver = true;
+        revealSecret();
+        statusEl.textContent = `恭喜你，在第 ${currentRow + 1} 行就猜对啦！`;
+        submitBtn.disabled = true;
+        return;
+      }
+
+      if (currentRow === config.attempts - 1) {
+        gameOver = true;
+        revealSecret();
+        statusEl.textContent = "机会用完了，答案已公开，再来一局试试～";
+        submitBtn.disabled = true;
+        return;
+      }
+
+      // 进入下一行
+      const prevRowEl = boardEl.children[currentRow];
+      prevRowEl.querySelectorAll(".slot").forEach(el => el.classList.remove("current"));
+
+      currentRow++;
+      const nextRowEl = boardEl.children[currentRow];
+      nextRowEl.querySelectorAll(".slot").forEach(el => el.classList.add("current"));
+    }
+
+function startGame() {
+  const diffKey = difficultySelect.value;
+
+  if (diffKey === "custom") {
+    // 自定义模式：从输入框读取数值
+    let colors = parseInt(customColorsInput.value, 10);
+    let attempts = parseInt(customAttemptsInput.value, 10);
+
+    // 做一下边界保护
+    if (isNaN(colors)) colors = 6;
+    if (isNaN(attempts)) attempts = 10;
+
+    // 颜色数不能超过总颜色数
+    const maxColors = ALL_COLORS.length;
+    if (colors > maxColors) colors = maxColors;
+    if (colors < 2) colors = 2;      // 最少 2 种颜色
+
+    // 次数简单限制一下范围
+    if (attempts < 1) attempts = 1;
+    if (attempts > 30) attempts = 30;
+
+    config = {
+      colors,
+      slots: 5,      // 答案长度固定 5
+      attempts
+    };
+  } else {
+    // 预设三种难度
+    config = DIFFICULTIES[diffKey];
+  }
+
+  configTextEl.textContent =
+    `颜色：${config.colors} 种，答案长度：${config.slots}，机会：${config.attempts} 次`;
+
+  secret = createSecret();
+  buildPalette();
+  buildSecretRow();
+  buildBoard();
+  submitBtn.disabled = false;
+}
+
+    submitBtn.addEventListener("click", submitCurrentRow);
+    restartBtn.addEventListener("click", startGame);
+    function onDifficultyChange() {
+  const diffKey = difficultySelect.value;
+  // 自定义时显示 panel，否则隐藏
+  if (diffKey === "custom") {
+    customPanelEl.style.display = "block";
+  } else {
+    customPanelEl.style.display = "none";
+  }
+  startGame();
+}
+
+submitBtn.addEventListener("click", submitCurrentRow);
+restartBtn.addEventListener("click", startGame);
+difficultySelect.addEventListener("change", onDifficultyChange);
+
+
+    // 初始化游戏
+    startGame();
+  </script>
+</body>
+</html>
