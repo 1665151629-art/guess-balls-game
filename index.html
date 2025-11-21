@@ -91,7 +91,12 @@
     .board-wrapper {
       display: flex;
       gap: 16px;
+	  align-items: flex-start;
     }
+
+	  .board-area {
+  flex: 1;            /* 左边棋盘区域占满剩余宽度 */
+}
 
     .board {
       display: flex;
@@ -194,14 +199,21 @@
   /* 整个游戏上下排列，而不是左右排 */
   .game-container {
     flex-direction: column;
-    align-items: center;
+    align-items: center; 
   }
 
   .board-wrapper {
     width: 100%;
     justify-content: center;
+	flex-direction: column;
   }
 
+  .help {
+    max-width: 100%;
+    width: 100%;
+    margin-top: 8px;
+  }
+	
   /* 左侧面板横向排版，更节省高度 */
   .left-panel {
     flex-direction: row;
@@ -320,35 +332,38 @@
     </div>
 
     <div class="board-wrapper">
-      <div>
-        <div class="secret-row" id="secretRow"></div>
-        <div class="board" id="board"></div>
-        <div class="bottom-actions">
-          <button id="submitBtn">提交本行猜测</button>
-        </div>
-        <div class="status" id="status"></div>
-      </div>
-     <div class="help">
+  <!-- 左边：棋盘区域 -->
+  <div class="board-area">
+    <div class="secret-row" id="secretRow"></div>
+    <div class="board" id="board"></div>
+    <div class="bottom-actions">
+      <button id="submitBtn">提交本行猜测</button>
+    </div>
+    <div class="status" id="status"></div>
+  </div>
+
+  <!-- 右边：玩法说明 -->
+  <div class="help">
     <details open>
       <summary>玩法说明</summary>
       <ol>
-        <li>选择上方的难度后，点击“重新开始”进入新一局。</li>
+        <li>选择难度后点击“重新开始”进入新一局。</li>
         <li>答案由 <strong>5 个彩色小球</strong> 组成，颜色可能重复。</li>
-        <li>从左侧颜色栏中<strong>点击或拖动</strong>颜色，填入当前红框行的圆圈中。</li>
-        <li>当前行的 5 个位置都填好后，点击“提交本行猜测”。</li>
-        <li>每行右侧会出现提示点：
+        <li>从左侧颜色栏<strong>点击或拖动</strong>颜色，填入当前红框行的圆圈中。</li>
+        <li>当前行填满后，点击“提交本行猜测”。</li>
+        <li>每行右侧提示点：
           <ul>
             <li><span class="hint-example black"></span> 黑点：颜色和位置都正确。</li>
-            <li><span class="hint-example white"></span> 白点：颜色正确，但位置不对。</li>
-            <li>没有点：该颜色没有出现在答案中。</li>
+            <li><span class="hint-example white"></span> 白点：颜色正确但位置不对。</li>
+            <li>没有点：该颜色没出现在答案中。</li>
           </ul>
         </li>
-        <li>在限定次数内让所有提示都变成黑点（5 个），即猜中答案，获得胜利。</li>
+        <li>在限定次数内凑出 5 个黑点，即猜中答案。</li>
       </ol>
     </details>
   </div>
-	</div>
-  </div>
+</div>
+</div>
 
   <script>
     const ALL_COLORS = [
@@ -683,6 +698,7 @@ difficultySelect.addEventListener("change", onDifficultyChange);
   </script>
 </body>
 </html>
+
 
 
 
