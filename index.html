@@ -246,6 +246,41 @@
     height: 18px;
   }
 }
+.help {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #444;
+  max-width: 260px;
+}
+
+.help details {
+  background: rgba(255,255,255,0.7);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.help summary {
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+/* 小黑点/白点示例 */
+.hint-example {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+.hint-example.black {
+  background: #000;
+}
+.hint-example.white {
+  background: #fff;
+  border: 1px solid #000;
+}
 
   </style>
 </head>
@@ -279,6 +314,26 @@
       </div>
 
       <div class="palette">
+		    <div class="help">
+    <details open>
+      <summary>玩法说明</summary>
+      <ol>
+        <li>选择上方的难度后，点击“重新开始”进入新一局。</li>
+        <li>答案由 <strong>5 个彩色小球</strong> 组成，颜色可能重复。</li>
+        <li>从左侧颜色栏中<strong>点击或拖动</strong>颜色，填入当前红框行的圆圈中。</li>
+        <li>当前行的 5 个位置都填好后，点击“提交本行猜测”。</li>
+        <li>每行右侧会出现提示点：
+          <ul>
+            <li><span class="hint-example black"></span> 黑点：颜色和位置都正确。</li>
+            <li><span class="hint-example white"></span> 白点：颜色正确，但位置不对。</li>
+            <li>没有点：该颜色没有出现在答案中。</li>
+          </ul>
+        </li>
+        <li>在限定次数内让所有提示都变成黑点（5 个），即猜中答案，获得胜利。</li>
+      </ol>
+    </details>
+  </div>
+
         <div class="palette-title">拖动颜色或点击填色</div>
         <div id="paletteColors"></div>
       </div>
@@ -629,5 +684,6 @@ difficultySelect.addEventListener("change", onDifficultyChange);
   </script>
 </body>
 </html>
+
 
 
