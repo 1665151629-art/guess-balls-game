@@ -316,7 +316,19 @@
       <div class="palette">
         <div class="palette-title">拖动颜色或点击填色</div>
         <div id="paletteColors"></div>
-		  <div class="help">
+      </div>
+    </div>
+
+    <div class="board-wrapper">
+      <div>
+        <div class="secret-row" id="secretRow"></div>
+        <div class="board" id="board"></div>
+        <div class="bottom-actions">
+          <button id="submitBtn">提交本行猜测</button>
+        </div>
+        <div class="status" id="status"></div>
+      </div>
+     <div class="help">
     <details open>
       <summary>玩法说明</summary>
       <ol>
@@ -335,20 +347,7 @@
       </ol>
     </details>
   </div>
-
-      </div>
-    </div>
-
-    <div class="board-wrapper">
-      <div>
-        <div class="secret-row" id="secretRow"></div>
-        <div class="board" id="board"></div>
-        <div class="bottom-actions">
-          <button id="submitBtn">提交本行猜测</button>
-        </div>
-        <div class="status" id="status"></div>
-      </div>
-    </div>
+	</div>
   </div>
 
   <script>
@@ -684,6 +683,7 @@ difficultySelect.addEventListener("change", onDifficultyChange);
   </script>
 </body>
 </html>
+
 
 
 
